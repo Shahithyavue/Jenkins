@@ -1,0 +1,47 @@
+pipeline {
+    agent any  // Where the job runs - can be a Jenkins agent or Docker container
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git url: 'https://github.com/yourusername/your-repo.git', branch: 'main'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'  // or mvn install / pip install ...
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'  // or pytest / mvn test ...
+            }
+        }
+
+        stage('Code Quality Check') {
+            steps {
+                // optional step
+                sh 'sonar-scanner'
+            }
+        }
+
+        stage('Deploy to AWS EC2') {
+            steps {
+                sshagent(['aws-ec2-key']) {
+                    sh 'scp -r * ec2-user@your-ec2-ip:/var/www/html'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '🎉 Deployment successful!'
+        }
+        failure {
+            echo '❌ Pipeline failed.'
+        }
+    }
+}
